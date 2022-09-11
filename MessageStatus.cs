@@ -15,29 +15,22 @@ namespace TwilioSMSWebHook
     {
         [FunctionName("MessageStatus")]
         [Produces("application/xml")]
-        public OkResult Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+         public async Task<OkResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
+            var form = await req.ReadFormAsync();
+            string messageSid = form["MessageSid"];
+            string messageStatus = form["MessageStatus"];
 
-            var sentMsgStream = new StreamReader(req.Body).ReadToEnd();
-
-            string[] msgProperties = sentMsgStream.Split("&");
-
-            string SmsSid, MsgSid, SmsStatus, MsgStatus;
-
-            SmsSid = Array.Find(msgProperties, property => property.Contains("SmsSid=")); //SmsSid=<SMS_SID>
-            
-            MsgSid = Array.Find(msgProperties, property => property.Contains("MessageSid=")); //MessageSid=<MESSAGE_SID>
-
-            SmsStatus = Array.Find(msgProperties, property => property.Contains("SmsSid=")); //SmsStatus=<SMS_STATUS>
-            
-            MsgStatus = Array.Find(msgProperties, property => property.Contains("MessageStatus=")); //MessageStatus=<MSESSAGE_STATUS>
-
-            log.LogInformation($"{SmsSid} \t {MsgSid} \t {SmsStatus} \t {MsgStatus}");
+            log.LogInformation(
+                "Status changed to {MessageStatus} for Message {MessageSid}", 
+                messageStatus,
+                messageSid   
+            );
 
             return new OkResult();
-
         }
+
     }
 }
